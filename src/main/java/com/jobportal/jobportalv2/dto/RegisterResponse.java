@@ -1,11 +1,12 @@
 package com.jobportal.jobportalv2.dto;
 
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Builder;
 
+@Data
 @Builder
-@Getter
 public class RegisterResponse {
     private Long id;
     private String name;

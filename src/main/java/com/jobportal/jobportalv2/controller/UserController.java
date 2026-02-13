@@ -1,9 +1,12 @@
 package com.jobportal.jobportalv2.controller;
 
+import com.jobportal.jobportalv2.dto.LoginRequest;
+import com.jobportal.jobportalv2.dto.LoginResponse;
 import com.jobportal.jobportalv2.dto.RegisterRequest;
 import com.jobportal.jobportalv2.dto.RegisterResponse;
 import com.jobportal.jobportalv2.entity.User;
 import com.jobportal.jobportalv2.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +23,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public RegisterResponse register(@RequestBody RegisterRequest request) {
+    public RegisterResponse register( @Valid @RequestBody RegisterRequest request) {
 
         User user = userService.register(
                 request.getName(),
@@ -33,6 +36,11 @@ public class UserController {
                 .name(user.getName())
                 .email(user.getEmail())
                 .build();
+    }
+
+    @PostMapping("/login")
+    public LoginResponse login(@Valid @RequestBody LoginRequest request) {
+        return userService.login(request.getEmail(), request.getPassword());
     }
 
 
