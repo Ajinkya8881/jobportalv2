@@ -1,9 +1,6 @@
 package com.jobportal.jobportalv2.controller;
 
-import com.jobportal.jobportalv2.dto.LoginRequest;
-import com.jobportal.jobportalv2.dto.LoginResponse;
-import com.jobportal.jobportalv2.dto.RegisterRequest;
-import com.jobportal.jobportalv2.dto.RegisterResponse;
+import com.jobportal.jobportalv2.dto.*;
 import com.jobportal.jobportalv2.entity.User;
 import com.jobportal.jobportalv2.service.UserService;
 import jakarta.validation.Valid;
@@ -38,6 +35,11 @@ public class UserController {
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest request) {
         return userService.login(request.getEmail(), request.getPassword());
+    }
+
+    @GetMapping("/profile")
+    public ProfileResponse getProfile() {
+        return userService.getProfile();
     }
 
 

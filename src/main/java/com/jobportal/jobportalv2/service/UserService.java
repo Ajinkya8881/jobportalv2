@@ -1,13 +1,15 @@
 package com.jobportal.jobportalv2.service;
 
 import com.jobportal.jobportalv2.dto.LoginResponse;
+import com.jobportal.jobportalv2.dto.ProfileResponse;
 import com.jobportal.jobportalv2.dto.RegisterResponse;
 import com.jobportal.jobportalv2.entity.User;
 import com.jobportal.jobportalv2.exception.BadRequestException;
-import com.jobportal.jobportalv2.exception.ResourceNotFoundException;
 import com.jobportal.jobportalv2.exception.UnauthorizedException;
 import com.jobportal.jobportalv2.repository.UserRepository;
 import com.jobportal.jobportalv2.security.JwtUtil;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -60,6 +62,25 @@ public class UserService {
                 .token(token)
                 .build();
     }
+
+    public ProfileResponse getProfile(){
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UnauthorizedException("User not found"));
+
+        return ProfileResponse.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .build();
+    }
+
 
 
 }
