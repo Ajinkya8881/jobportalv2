@@ -1,10 +1,13 @@
 package com.jobportal.jobportalv2.service;
 
 import com.jobportal.jobportalv2.dto.LoginResponse;
+import com.jobportal.jobportalv2.dto.RegisterResponse;
 import com.jobportal.jobportalv2.entity.User;
+import com.jobportal.jobportalv2.exception.BadRequestException;
+import com.jobportal.jobportalv2.exception.ResourceNotFoundException;
+import com.jobportal.jobportalv2.exception.UnauthorizedException;
 import com.jobportal.jobportalv2.repository.UserRepository;
 import com.jobportal.jobportalv2.security.JwtUtil;
-import io.jsonwebtoken.Jwts;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +25,10 @@ public class UserService {
         this.jwtUtil = jwtUtil;
     }
 
-    public User register(String name, String email, String password){
+    public RegisterResponse register(String name, String email, String password){
 
         if(userRepository.existsByEmail(email)){
-            throw new RuntimeException("Email already exists");
+            throw new BadRequestException("Email already exists");
         }
         String encodePassword = passwordEncoder.encode(password);
 
@@ -36,14 +39,20 @@ public class UserService {
                 .role("ROLE_USER")
                 .build();
 
-        return userRepository.save(user);
+        User saved =  userRepository.save(user);
+
+        return RegisterResponse.builder()
+                .id(saved.getId())
+                .name(saved.getName())
+                .email(saved.getEmail())
+                .build();
     }
     public LoginResponse login(String email, String password){
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Email not found"));
+                .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
 
         if(!passwordEncoder.matches(password, user.getPassword())){
-            throw new RuntimeException("Wrong password");
+            throw new UnauthorizedException("Invalid credentials");
         }
         String token = jwtUtil.generateToken(email);
 
