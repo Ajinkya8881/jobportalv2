@@ -2,14 +2,20 @@ package com.jobportal.jobportalv2.service;
 
 import com.jobportal.jobportalv2.dto.CreateJobRequest;
 import com.jobportal.jobportalv2.dto.JobResponse;
+import com.jobportal.jobportalv2.dto.PaginatedResponse;
 import com.jobportal.jobportalv2.entity.Job;
 import com.jobportal.jobportalv2.repository.JobRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import org.springframework.data.domain.Pageable;
+
+
 
 @Service
 @RequiredArgsConstructor
@@ -31,11 +37,31 @@ public class JobService {
 
     }
 
-    public List<JobResponse> getAllJobs() {
-        return jobRepository.findAll()
+    public PaginatedResponse<JobResponse> getAllJobs(int page,
+                                                     int size,
+                                                     String sortBy,
+                                                     String direction) {
+        Sort sort = direction.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Job> jobPage = jobRepository.findAll(pageable);
+
+        List<JobResponse> content = jobPage.getContent()
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
+
+        return PaginatedResponse.<JobResponse>builder()
+                .content(content)
+                .page(jobPage.getNumber())
+                .size(jobPage.getSize())
+                .totalElements(jobPage.getTotalElements())
+                .totalPages(jobPage.getTotalPages())
+                .last(jobPage.isLast())
+                .build();
     }
 
     private JobResponse mapToResponse(Job job) {

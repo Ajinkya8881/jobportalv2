@@ -2,13 +2,13 @@ package com.jobportal.jobportalv2.controller;
 
 import com.jobportal.jobportalv2.dto.CreateJobRequest;
 import com.jobportal.jobportalv2.dto.JobResponse;
+import com.jobportal.jobportalv2.dto.PaginatedResponse;
 import com.jobportal.jobportalv2.service.JobService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/jobs")
@@ -24,7 +24,13 @@ public class JobController {
     }
 
     @GetMapping
-    public List<JobResponse> getAllJobs() {
-        return jobService.getAllJobs();
+    public PaginatedResponse<JobResponse> getAllJobs(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction
+    ) {
+        return jobService.getAllJobs(page,size,sortBy, direction);
+
     }
 }
