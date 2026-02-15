@@ -4,6 +4,7 @@ import com.jobportal.jobportalv2.dto.CreateJobRequest;
 import com.jobportal.jobportalv2.dto.JobResponse;
 import com.jobportal.jobportalv2.dto.PaginatedResponse;
 import com.jobportal.jobportalv2.entity.Job;
+import com.jobportal.jobportalv2.exception.BadRequestException;
 import com.jobportal.jobportalv2.repository.JobRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,7 +21,11 @@ import org.springframework.data.domain.Pageable;
 @Service
 @RequiredArgsConstructor
 public class JobService {
+
     private final JobRepository jobRepository;
+
+    private static final List<String> ALLOWED_SORT_FIELDS =
+            List.of("title", "company", "location", "createdAt");
 
     public JobResponse createJob(CreateJobRequest request) {
         Job job = Job.builder()
@@ -41,6 +46,11 @@ public class JobService {
                                                      int size,
                                                      String sortBy,
                                                      String direction) {
+
+        if (!ALLOWED_SORT_FIELDS.contains(sortBy)){
+            throw new BadRequestException("Invalid sort fields: " + sortBy);
+        }
+
         Sort sort = direction.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
