@@ -5,6 +5,7 @@ import com.jobportal.jobportalv2.dto.JobResponse;
 import com.jobportal.jobportalv2.dto.PaginatedResponse;
 import com.jobportal.jobportalv2.entity.Job;
 import com.jobportal.jobportalv2.exception.BadRequestException;
+import com.jobportal.jobportalv2.exception.ResourceNotFoundException;
 import com.jobportal.jobportalv2.repository.JobRepository;
 import com.jobportal.jobportalv2.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +43,7 @@ public class JobService {
         String email =  authentication.getName();
 
         User employer = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BadRequestException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Job job = Job.builder()
                 .title(request.getTitle())

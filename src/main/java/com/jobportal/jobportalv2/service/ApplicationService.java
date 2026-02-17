@@ -6,6 +6,7 @@ import com.jobportal.jobportalv2.entity.ApplicationStatus;
 import com.jobportal.jobportalv2.entity.Job;
 import com.jobportal.jobportalv2.entity.User;
 import com.jobportal.jobportalv2.exception.BadRequestException;
+import com.jobportal.jobportalv2.exception.ResourceNotFoundException;
 import com.jobportal.jobportalv2.repository.ApplicationRepository;
 import com.jobportal.jobportalv2.repository.JobRepository;
 import com.jobportal.jobportalv2.repository.UserRepository;
@@ -37,10 +38,10 @@ public class ApplicationService {
         String email =  authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResolutionException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Job job = jobRepository.findById(jobId)
-                .orElseThrow(() -> new ResolutionException("Job not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Job not found"));
 
         if(applicationRepository.existsByUserIdAndJobId(user.getId(), jobId)){
             throw new BadRequestException("Application already exists");
