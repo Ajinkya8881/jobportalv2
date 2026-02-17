@@ -31,4 +31,8 @@ public class Application {
 
     @Column(nullable = false)
     private LocalDateTime appliedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ApplicationStatus status;
 }

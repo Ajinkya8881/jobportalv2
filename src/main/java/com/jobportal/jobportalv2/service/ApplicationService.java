@@ -2,6 +2,7 @@ package com.jobportal.jobportalv2.service;
 
 import com.jobportal.jobportalv2.dto.ApplicationResponse;
 import com.jobportal.jobportalv2.entity.Application;
+import com.jobportal.jobportalv2.entity.ApplicationStatus;
 import com.jobportal.jobportalv2.entity.Job;
 import com.jobportal.jobportalv2.entity.User;
 import com.jobportal.jobportalv2.exception.BadRequestException;
@@ -15,6 +16,9 @@ import org.springframework.stereotype.Service;
 
 import java.lang.module.ResolutionException;
 import java.time.LocalDateTime;
+import com.jobportal.jobportalv2.event.ApplicationEvent;
+import com.jobportal.jobportalv2.event.ApplicationEventProducer;
+
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +26,7 @@ public class ApplicationService {
     private final ApplicationRepository applicationRepository;
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventProducer eventProducer;
 
     public ApplicationResponse applyToJob(Long jobId){
 
@@ -45,17 +50,47 @@ public class ApplicationService {
                 .user(user)
                 .job(job)
                 .appliedAt(LocalDateTime.now())
+                .status(ApplicationStatus.APPLIED)
                 .build();
 
         Application saved =  applicationRepository.save(application);
+
+        ApplicationEvent event = new ApplicationEvent(
+                "APPLICATION_SUBMITTED",
+                job.getId(),
+                user.getId(),
+                job.getEmployer().getId(),
+                null
+        );
+
+        eventProducer.publishEvent(event);
 
         return ApplicationResponse.builder()
                 .message("Application submitted successfully")
                 .id(saved.getId())
                 .jobId(jobId)
                 .jobTitle(job.getTitle())
-                .appliedAt(LocalDateTime.now())
+                .appliedAt(saved.getAppliedAt())
                 .build();
+    }
+
+    public void updateStatus(Long applicationId, ApplicationStatus status) {
+
+        Application application = applicationRepository.findById(applicationId)
+                .orElseThrow(()-> new BadRequestException("Application not found"));
+
+        application.setStatus(status);
+        Application saved = applicationRepository.save(application);
+
+        ApplicationEvent event = new ApplicationEvent(
+                "APPLICATION_STATUS_UPDATED",
+                saved.getJob().getId(),
+                saved.getUser().getId(),
+                saved.getJob().getEmployer().getId(),
+                status.name()
+        );
+
+        eventProducer.publishEvent(event);
     }
 
 

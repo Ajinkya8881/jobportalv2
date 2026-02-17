@@ -32,4 +32,8 @@ public class Job {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "employer_id", nullable = false)
+    private User employer;
 }
