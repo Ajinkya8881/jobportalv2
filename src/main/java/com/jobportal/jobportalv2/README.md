@@ -1,12 +1,10 @@
 # Job Portal Backend (Monolith + Kafka Integration)
 
-A production-style Spring Boot backend system implementing a secure Job Portal with JWT authentication, role-based authorization, pagination, validation, Docker-based infrastructure, and Kafka-based event publishing integrated with a separate Notification microservice.
-
-This project demonstrates real-world backend architecture used in production-grade systems.
+Backend system implementing a secure Job Portal using Spring Boot with JWT-based authentication, role-based authorization, pagination, validation, Docker-based infrastructure, and Kafka-based event publishing integrated with a separate Notification microservice.
 
 ---
 
-## 🚀 Tech Stack
+## Tech Stack
 
 - Java 17
 - Spring Boot 3.x
@@ -19,46 +17,46 @@ This project demonstrates real-world backend architecture used in production-gra
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
-### Layered Architecture
+Layered Architecture:
 
 Controller → Service → Repository → Database
 
-### Core Layers
+Core Layers:
 
-- **Controller** → Handles HTTP requests
-- **Service** → Business logic
-- **Repository** → JPA database interaction
-- **DTO** → Request/Response isolation
-- **Entity** → Database mapping
-- **Security** → JWT + custom handlers
-- **Event Layer** → Kafka Producer
-- **Exception Layer** → Global exception handling
+- Controller – Handles HTTP requests
+- Service – Business logic
+- Repository – JPA database interaction
+- DTO – Request/Response isolation
+- Entity – Database mapping
+- Security – JWT authentication & authorization
+- Event Layer – Kafka Producer
+- Exception Layer – Global exception handling
 
 ---
 
-## 🔐 Security Features
+## Security
 
 - Stateless authentication
 - JWT token generation
 - BCrypt password hashing
-- Custom 401 Authentication EntryPoint
+- Custom 401 AuthenticationEntryPoint
 - Custom 403 AccessDeniedHandler
 - Role-based endpoint restriction
 - Method-level security using `@PreAuthorize`
-- `spring.jpa.open-in-view=false` (Production optimization)
+- `spring.jpa.open-in-view=false`
 
 ---
 
-## 👥 Roles
+## Roles
 
 | Role  | Access |
 |-------|--------|
 | USER  | Apply to jobs |
 | ADMIN | Create jobs, update application status |
 
-### Admin auto-created at startup:
+Admin auto-created at startup:
 
 - Email: `admin@jobportal.com`
 - Password: `admin123`
@@ -66,12 +64,12 @@ Controller → Service → Repository → Database
 
 ---
 
-## 🗄 Database Design
+## Database Design
 
 ### Users
 
 - Unique email constraint
-- BCrypt password stored
+- BCrypt password storage
 - Role stored as string
 
 ### Jobs
@@ -85,13 +83,14 @@ Controller → Service → Repository → Database
 - Unique constraint on `(user_id, job_id)`
 
 Status enum:
+
 - APPLIED
 - ACCEPTED
 - REJECTED
 
 ---
 
-## 📨 Kafka Integration
+## Kafka Integration
 
 Events are published when:
 
@@ -103,7 +102,7 @@ Topic:
 application-events
 
 
-### Example Event Payload
+Example event payload:
 
 ```json
 {
@@ -113,45 +112,41 @@ application-events
   "employerId": 1,
   "status": "ACCEPTED"
 }
-Notification Service consumes this event and persists notification independently.
+Notification service consumes these events and persists notifications independently.
 
-🐳 Running the Project
-Option 1 — Run Infrastructure with Docker (Recommended)
-Start MySQL + Kafka + Zookeeper:
+Running the Project
+Option 1 — Run Infrastructure Only
+Start MySQL, Kafka and Zookeeper:
 
 docker-compose up -d mysql kafka zookeeper
-MySQL runs on port 3307
-Kafka runs on port 9092
+MySQL: port 3307
+Kafka: port 9092
 
-Then run Spring Boot:
+Then start Spring Boot:
 
 ./mvnw spring-boot:run
-App runs at:
+Application runs at:
 
 http://localhost:8080
-Option 2 — Run Full Docker (App + Infra)
+Option 2 — Run Full Docker Setup
 docker-compose up -d
-App: http://localhost:8080
+Application: http://localhost:8080
 MySQL: 3307
 Kafka: 9092
 
-🧪 COMPLETE END-TO-END TEST FLOW
-1️⃣ Register User
+End-to-End Test Flow
+1. Register User
 POST
-
 http://localhost:8080/users/register
-Body:
 
 {
   "name": "Ajinkya",
   "email": "user@test.com",
   "password": "123456"
 }
-2️⃣ Login
+2. Login
 POST
-
 http://localhost:8080/users/login
-Body:
 
 {
   "email": "user@test.com",
@@ -164,11 +159,9 @@ Response:
 }
 Copy this token.
 
-3️⃣ Login as Admin
+3. Login as Admin
 POST
-
 http://localhost:8080/users/login
-Body:
 
 {
   "email": "admin@jobportal.com",
@@ -176,29 +169,27 @@ Body:
 }
 Copy ADMIN token.
 
-4️⃣ Create Job (ADMIN Only)
+4. Create Job (ADMIN Only)
 POST
-
 http://localhost:8080/jobs
+
 Header:
 
 Authorization: Bearer <ADMIN_TOKEN>
-Body:
-
 {
   "title": "Spring Boot Developer",
   "description": "Backend + Kafka",
   "company": "TechCorp",
   "location": "Pune"
 }
-5️⃣ View Jobs (Public)
+5. View Jobs (Public)
 GET
-
 http://localhost:8080/jobs?page=0&size=5&sortBy=createdAt&direction=desc
-6️⃣ Apply to Job (USER Only)
-POST
 
+6. Apply to Job (USER Only)
+POST
 http://localhost:8080/applications/1
+
 Header:
 
 Authorization: Bearer <USER_TOKEN>
@@ -213,33 +204,31 @@ Response:
 }
 Kafka event published.
 
-7️⃣ Update Application Status (ADMIN Only)
+7. Update Application Status (ADMIN Only)
 PATCH
-
 http://localhost:8080/applications/1/status
+
 Header:
 
 Authorization: Bearer <ADMIN_TOKEN>
-Body:
-
 {
   "status": "ACCEPTED"
 }
 Kafka event published.
-Application status updated in jobportal database.
+Application status updated in database.
 
-🔔 Notification Microservice
-Runs separately on:
+Notification Microservice
+Runs separately at:
 
 http://localhost:8081
 Consumes Kafka events and stores notifications in:
 
 notification_db
-8️⃣ Check Notifications
+8. Check Notifications
 GET
-
 http://localhost:8081/notifications
-Example Response:
+
+Example response:
 
 [
   {
@@ -253,26 +242,22 @@ Example Response:
     "read": false
   }
 ]
-This confirms event-driven integration is working.
-
-9️⃣ Mark Notification As Read
+9. Mark Notification as Read
 PATCH
-
 http://localhost:8081/notifications/3/read
-No body required.
 
-After this:
+After that:
 
 GET
-
 http://localhost:8081/notifications
+
 Now:
 
 "read": true
-🧠 Production Decisions Implemented
-DTO isolation (no entity leakage)
+Design Decisions
+DTO isolation (no entity exposure)
 
-Sort field whitelist (prevent sort injection)
+Sort field whitelist
 
 Global exception handling
 
@@ -286,41 +271,21 @@ Open-In-View disabled
 
 Event-driven decoupling
 
-Microservice-ready architecture
-
-📦 Microservice Design
-Monolith publishes domain events.
-Notification service consumes events independently.
+Microservice Design
+The monolith publishes domain events.
+The notification service consumes events independently.
 
 Benefits:
+
 Service decoupling
 
 Horizontal scalability
 
-Future extension (Email/SMS/Push)
+Independent deployment
 
 Clean domain separation
 
-📈 What This Project Demonstrates
-Secure backend development
-
-JWT-based authentication
-
-Production-style layered architecture
-
-Event-driven system design
-
-Kafka integration
-
-Database constraint management
-
-Role-based authorization
-
-Clean error handling
-
-Docker-based infrastructure setup
-
-📁 Repository Structure
+Repository Structure
 jobportalv2 (Monolith)
 Controllers
 
@@ -350,7 +315,5 @@ DTO mapping
 Read/unread tracking
 
 Independent database
-
-Open-in-view disabled
 
 Runs on port 8081
